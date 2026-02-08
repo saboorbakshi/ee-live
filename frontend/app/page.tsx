@@ -2,12 +2,11 @@ import rawData from "../data.json";
 import CRSChart from "./components/CRSChart";
 
 interface Round {
-  drawNumber: string;
   drawDateFull: string;
   drawSize: string;
   drawCRS: string;
-  drawText2: string;
-  drawDistributionAsOn: string;
+  drawCategory: string;
+  drawDistributionDate: string;
   dd1: string;
   dd2: string;
   dd3: string;
@@ -30,12 +29,11 @@ interface Round {
 
 function extractData(rounds: Record<string, string>[]): Round[] {
   return rounds.map((r) => ({
-    drawNumber: r.drawNumber,
     drawDateFull: r.drawDateFull,
     drawSize: r.drawSize,
     drawCRS: r.drawCRS,
-    drawText2: r.drawText2,
-    drawDistributionAsOn: r.drawDistributionAsOn,
+    drawCategory: r.drawName,
+    drawDistributionDate: r.drawDistributionAsOn,
     dd1: r.dd1,
     dd2: r.dd2,
     dd3: r.dd3,
@@ -57,45 +55,44 @@ function extractData(rounds: Record<string, string>[]): Round[] {
   }));
 }
 
-function deduplicateByDistribution(rounds: Round[]): Round[] {
+function deduplicateByDistributionDate(rounds: Round[]): Round[] {
   const seen = new Set<string>();
   return rounds.filter((r) => {
-    if (seen.has(r.drawDistributionAsOn)) return false;
-    seen.add(r.drawDistributionAsOn);
+    if (seen.has(r.drawDistributionDate)) return false;
+    seen.add(r.drawDistributionDate);
     return true;
   });
 }
 
+function groupByCategory(rounds: Round[]): Record<string, Round[]> {
+  const groups: Record<string, Round[]> = {};
+  for (const r of rounds) {
+    if (!groups[r.drawCategory]) groups[r.drawCategory] = [];
+    groups[r.drawCategory].push(r);
+  }
+  return groups;
+}
+
 export default function Home() {
   const rounds = extractData(rawData.payload.rounds);
+  const uniqueDistributions = deduplicateByDistributionDate(rounds);
+  const grouped = groupByCategory(rounds);
 
-  // De-duplicate dd1-dd18 by unique drawDistributionAsOn
-  const uniqueDistributions = deduplicateByDistribution(rounds);
+  const category = "Canadian Experience Class";
+  const categoryRounds = grouped[category] ?? [];
 
-  // Chart data: all rounds, reversed for chronological order (oldest first)
-  const chartData = [...rounds].reverse().map((r, i) => ({
+  const chartData = [...categoryRounds].reverse().map((r, i) => ({
     index: i + 1,
     drawCRS: Number(r.drawCRS),
-    drawNumber: r.drawNumber,
+    drawSize: r.drawSize,
     drawDateFull: r.drawDateFull,
-    drawText2: r.drawText2,
+    drawCategory: r.drawCategory,
   }));
 
   return (
     <div className="flex min-h-screen items-center justify-center font-sans">
       <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-lg">Lowest CRS Score</p>
-            <p className="text-5xl">549</p>
-            <p className="text-foreground2 mt-1">January 21, 2026</p>
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <h2 className="text-lg mb-4">CRS Score History</h2>
-          <CRSChart data={chartData} />
-        </div>
+        <CRSChart data={chartData} />
       </main>
     </div>
   );

@@ -4,6 +4,8 @@
   --background: #ffffff;
   --foreground: #111111;
   --foreground2: #808080;
+  --border: #f1f1f1;
+  --border2: #d0d0d0;
   --primary: #d52b1e;
 }
 
@@ -11,6 +13,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-foreground2: var(--foreground2);
+  --color-border: var(--border);  
+  --color-border2: var(--border2);  
   --color-primary: var(--primary);
   --font-sans: var(--font-sohne);
 }

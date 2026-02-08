@@ -1,71 +1,110 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import {
   LineChart,
   Line,
-  XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-
 interface ChartDataPoint {
   index: number;
   drawCRS: number;
-  drawNumber: string;
+  drawSize: string;
   drawDateFull: string;
-  drawText2: string;
+  drawCategory: string;
 }
 
 interface CRSChartProps {
   data: ChartDataPoint[];
 }
 
-export default function CRSChart({ data }: CRSChartProps) {
+function ChartTooltip({
+  active,
+  payload,
+  onActiveChange,
+  fallback,
+}: {
+  active?: boolean;
+  payload?: { payload: ChartDataPoint }[];
+  onActiveChange: (point: ChartDataPoint) => void;
+  fallback: ChartDataPoint;
+}) {
+  const point = active && payload?.[0]
+    ? (payload[0].payload as ChartDataPoint)
+    : null;
+
+  const prevRef = useRef<ChartDataPoint | null>(null);
+  useEffect(() => {
+    if (prevRef.current !== point) {
+      prevRef.current = point;
+      onActiveChange(point ?? fallback);
+    }
+  });
+
+  if (!point) return null;
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-        <XAxis
-          dataKey="index"
-          tick={{ fontSize: 12, fill: "#707070" }}
-          tickLine={{ stroke: "#e5e5e5" }}
-          axisLine={{ stroke: "#e5e5e5" }}
-        />
-        <YAxis
-          domain={["dataMin - 20", "dataMax + 20"]}
-          tick={{ fontSize: 12, fill: "#707070" }}
-          tickLine={{ stroke: "#e5e5e5" }}
-          axisLine={{ stroke: "#e5e5e5" }}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: "#fff",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            fontSize: 13,
-          }}
-          formatter={(value: number | undefined) => [value ?? 0, "CRS Score"]}
-          labelFormatter={(label: unknown) => {
-            const idx = typeof label === "number" ? label : Number(label);
-            const point = data.find((d) => d.index === idx);
-            if (!point) return `#${idx}`;
-            return `#${point.drawNumber} — ${point.drawDateFull} (${point.drawText2})`;
-          }}
-        />
-        <Line
-          type="monotone"
-          dataKey="drawCRS"
-          stroke="#d52b1e"
-          strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 4, fill: "#d52b1e" }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div
+      style={{
+        backgroundColor: "var(--background)",
+        border: "1px solid var(--border)",
+        borderRadius: "8px",
+        fontSize: 14,
+        color: "var(--foreground)",
+        padding: "6px 10px",
+      }}
+    >
+      <div className="flex flex-col text-foreground2">
+        <span><span className="text-foreground">{point.drawCRS}</span> CRS score</span>
+        <span><span className="text-foreground">{point.drawSize}</span> invitations</span>
+        <span>{point.drawDateFull}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function CRSChart({ data }: CRSChartProps) {
+  const [active, setActive] = useState(data[data.length - 1]);
+
+  return (
+    <div>
+      <div className="mb-6">
+        <p className="text-lg">Lowest CRS Score</p>
+        <p className="text-5xl">{active.drawCRS}</p>
+        <p className="text-foreground2 mt-1">{active.drawDateFull}</p>
+      </div>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          data={data}
+          margin={{ top: 0, right: 0, bottom: 0, left: 4 }}
+        >
+          <YAxis
+            orientation="right"
+            width={32}
+            domain={["dataMin - 20", "dataMax + 20"]}
+            tick={{ fontSize: 12, fill: "var(--foreground2)" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <Tooltip
+            cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
+            content={<ChartTooltip onActiveChange={setActive} fallback={data[data.length - 1]} />}
+          />
+          <Line
+            type="monotone"
+            dataKey="drawCRS"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 2, fill: "var(--primary)" }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
