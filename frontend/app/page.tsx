@@ -1,4 +1,8 @@
+"use client";
+
 import rawData from "../data.json";
+import { useState, useMemo } from "react";
+import Select from "./components/Select";
 import CRSChart from "./components/CRSChart";
 
 interface Round {
@@ -32,7 +36,7 @@ function extractData(rounds: Record<string, string>[]): Round[] {
     drawDateFull: r.drawDateFull,
     drawSize: r.drawSize,
     drawCRS: r.drawCRS,
-    drawCategory: r.drawName,
+    drawCategory: r.drawName.replace(/Version /gi, "V").replace(/ occupations/gi, ""),
     drawDistributionDate: r.drawDistributionAsOn,
     dd1: r.dd1,
     dd2: r.dd2,
@@ -73,26 +77,39 @@ function groupByCategory(rounds: Round[]): Record<string, Round[]> {
   return groups;
 }
 
-export default function Home() {
-  const rounds = extractData(rawData.payload.rounds);
-  const uniqueDistributions = deduplicateByDistributionDate(rounds);
-  const grouped = groupByCategory(rounds);
+const rounds = extractData(rawData.payload.rounds);
+const uniqueDistributions = deduplicateByDistributionDate(rounds);
+const grouped = groupByCategory(rounds);
+const categories = Object.keys(grouped);
 
-  const category = "Canadian Experience Class";
-  const categoryRounds = grouped[category] ?? [];
-
-  const chartData = [...categoryRounds].reverse().map((r, i) => ({
+const chartDataByCategory: Record<
+  string,
+  { index: number; drawCRS: number; drawSize: string; drawDateFull: string; drawCategory: string }[]
+> = {};
+for (const category of categories) {
+  chartDataByCategory[category] = [...grouped[category]].reverse().map((r, i) => ({
     index: i + 1,
     drawCRS: Number(r.drawCRS),
     drawSize: r.drawSize,
     drawDateFull: r.drawDateFull,
     drawCategory: r.drawCategory,
   }));
+}
+
+export default function Home() {
+  const [category, setCategory] = useState("Canadian Experience Class");
+  const data = useMemo(() => chartDataByCategory[category] ?? [], [category]);
 
   return (
     <div className="flex min-h-screen items-center justify-center font-sans">
       <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5">
-        <CRSChart data={chartData} />
+        <Select
+          value={category}
+          onValueChange={setCategory}
+          options={categories}
+          className="mb-6"
+        />
+        <CRSChart data={data} />
       </main>
     </div>
   );

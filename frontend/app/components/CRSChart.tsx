@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -67,7 +67,12 @@ function ChartTooltip({
 }
 
 export default function CRSChart({ data }: CRSChartProps) {
-  const [active, setActive] = useState(data[data.length - 1]);
+  const fallback = useMemo(() => data[data.length - 1], [data]);
+  const [active, setActive] = useState(fallback);
+
+  useEffect(() => {
+    setActive(fallback);
+  }, [fallback]);
 
   return (
     <div>
@@ -93,7 +98,7 @@ export default function CRSChart({ data }: CRSChartProps) {
           <CartesianGrid vertical={false} stroke="var(--border)" />
           <Tooltip
             cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
-            content={<ChartTooltip onActiveChange={setActive} fallback={data[data.length - 1]} />}
+            content={<ChartTooltip onActiveChange={setActive} fallback={fallback} />}
           />
           <Line
             type="monotone"
