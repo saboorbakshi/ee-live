@@ -30,7 +30,7 @@ export default function Select({ value, onValueChange, options, className }: Sel
   return (
     <BaseSelect.Root value={value} onValueChange={(v) => v && onValueChange(v)}>
       <BaseSelect.Trigger
-        className={`inline-flex w-fit items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground2 outline-none hover:border-border2 focus-visible:ring-2 focus-visible:ring-primary ${className ?? ""}`}
+        className={`inline-flex w-fit items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm text-foreground2 outline-none hover:border-border2 focus-visible:ring-2 focus-visible:ring-border2 ${className ?? ""}`}
       >
         <BaseSelect.Value />
         <BaseSelect.Icon>
@@ -46,9 +46,7 @@ export default function Select({ value, onValueChange, options, className }: Sel
                 value={option}
                 className="grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-1 px-3 py-1.5 text-sm outline-none data-highlighted:bg-background2"
               >
-                <BaseSelect.ItemIndicator className="col-start-1">
-                <div>•</div>
-                </BaseSelect.ItemIndicator>
+                <BaseSelect.ItemIndicator className="col-start-1">•</BaseSelect.ItemIndicator>
                 <BaseSelect.ItemText className="col-start-2">{option}</BaseSelect.ItemText>
               </BaseSelect.Item>
             ))}

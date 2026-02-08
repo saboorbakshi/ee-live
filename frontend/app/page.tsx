@@ -6,6 +6,7 @@ import Select from "./components/Select";
 import CRSChart from "./components/CRSChart";
 
 interface Round {
+  drawDate: string;
   drawDateFull: string;
   drawSize: string;
   drawCRS: string;
@@ -32,7 +33,11 @@ interface Round {
 }
 
 function extractData(rounds: Record<string, string>[]): Round[] {
-  return rounds.map((r) => ({
+  return rounds.filter((r) => {
+    const year = parseInt(r.drawDateFull.split(", ").pop() ?? "0", 10);
+    return year >= 2020;
+  }).map((r) => ({
+    drawDate: r.drawDate,
     drawDateFull: r.drawDateFull,
     drawSize: r.drawSize,
     drawCRS: r.drawCRS,
@@ -84,11 +89,12 @@ const categories = Object.keys(grouped);
 
 const chartDataByCategory: Record<
   string,
-  { index: number; drawCRS: number; drawSize: string; drawDateFull: string; drawCategory: string }[]
+  { index: number; drawDate: string; drawCRS: number; drawSize: string; drawDateFull: string; drawCategory: string }[]
 > = {};
 for (const category of categories) {
   chartDataByCategory[category] = [...grouped[category]].reverse().map((r, i) => ({
     index: i + 1,
+    drawDate: r.drawDate,
     drawCRS: Number(r.drawCRS),
     drawSize: r.drawSize,
     drawDateFull: r.drawDateFull,
@@ -96,19 +102,49 @@ for (const category of categories) {
   }));
 }
 
+const timeOptions = ["1Y", "All", "2026", "2025", "2024", "2023", "2022", "2021", "2020"];
+
+function filterByTime(
+  data: typeof chartDataByCategory[string],
+  period: string,
+) {
+  let filtered;
+  if (period === "All") {
+    filtered = data;
+  } else if (period === "1Y") {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    filtered = data.filter((d) => d.drawDate >= cutoffStr);
+  } else {
+    filtered = data.filter((d) => d.drawDate.startsWith(period));
+  }
+  return filtered.map((d, i) => ({ ...d, index: i + 1 }));
+}
+
 export default function Home() {
   const [category, setCategory] = useState("Canadian Experience Class");
-  const data = useMemo(() => chartDataByCategory[category] ?? [], [category]);
+  const [timePeriod, setTimePeriod] = useState("1Y");
+  const data = useMemo(
+    () => filterByTime(chartDataByCategory[category] ?? [], timePeriod),
+    [category, timePeriod],
+  );
 
   return (
     <div className="flex min-h-screen items-center justify-center font-sans">
       <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5">
-        <Select
-          value={category}
-          onValueChange={setCategory}
-          options={categories}
-          className="mb-6"
-        />
+        <div className="mb-6 flex gap-2">
+          <Select
+            value={category}
+            onValueChange={setCategory}
+            options={categories}
+          />
+          <Select
+            value={timePeriod}
+            onValueChange={setTimePeriod}
+            options={timeOptions}
+          />
+        </div>
         <CRSChart data={data} />
       </main>
     </div>

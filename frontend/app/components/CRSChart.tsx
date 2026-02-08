@@ -11,6 +11,7 @@ import {
 } from "recharts";
 interface ChartDataPoint {
   index: number;
+  drawDate: string;
   drawCRS: number;
   drawSize: string;
   drawDateFull: string;
@@ -70,6 +71,31 @@ export default function CRSChart({ data }: CRSChartProps) {
   const fallback = useMemo(() => data[data.length - 1], [data]);
   const [active, setActive] = useState(fallback);
 
+  // Calculate dynamic domain based on data range
+  const domain = useMemo(() => {
+    const vals = data.map(d => d.drawCRS);
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+
+    const range = max - min || 1;
+    const mag = 10 ** Math.floor(Math.log10(range));
+
+    // Add padding first (1% of range, minimum 1)
+    const padding = Math.max(1, Math.ceil(range * 0.01));
+    const paddedMin = min - padding;
+    const paddedMax = max + padding;
+
+    // Round to magnitude boundaries for even numbers
+    const lowerBound = Math.floor(paddedMin / mag) * mag;
+    const upperBound = Math.ceil(paddedMax / mag) * mag;
+
+    // Ensure integers
+    return [
+      Math.floor(lowerBound),
+      Math.ceil(upperBound),
+    ];
+  }, [data]);
+
   useEffect(() => {
     setActive(fallback);
   }, [fallback]);
@@ -82,34 +108,41 @@ export default function CRSChart({ data }: CRSChartProps) {
         <p className="text-foreground2 mt-1">{active.drawDateFull}</p>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-          data={data}
-          margin={{ top: 0, right: 0, bottom: 0, left: 4 }}
-        >
-          <YAxis
-            orientation="right"
-            width={32}
-            domain={["dataMin - 20", "dataMax + 20"]}
-            tick={{ fontSize: 12, fill: "var(--foreground2)" }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <CartesianGrid vertical={false} stroke="var(--border)" />
-          <Tooltip
-            cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
-            content={<ChartTooltip onActiveChange={setActive} fallback={fallback} />}
-          />
-          <Line
-            type="monotone"
-            dataKey="drawCRS"
-            stroke="var(--primary)"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 5, strokeWidth: 2, fill: "var(--primary)" }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      <div className="h-48 sm:h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 0, right: 0, bottom: 0, left: 4 }}
+          >
+            <YAxis
+              orientation="right"
+              width={32}
+              domain={domain}
+              allowDecimals={false}
+              tick={{ fontSize: 12, fill: "var(--foreground2)" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <CartesianGrid vertical={false} stroke="var(--border)" />
+            <Tooltip
+              animationDuration={200}
+              animationEasing="ease-out"
+              cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
+              content={<ChartTooltip onActiveChange={setActive} fallback={fallback} />}
+            />
+            <Line
+              type="monotone"
+              dataKey="drawCRS"
+              stroke="var(--primary)"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 5, strokeWidth: 2, fill: "var(--primary)" }}
+              animationDuration={400}
+              animationEasing="ease-out"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
