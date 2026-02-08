@@ -108,41 +108,39 @@ export default function CRSChart({ data }: CRSChartProps) {
         <p className="text-foreground2 mt-1">{active.drawDateFull}</p>
       </div>
 
-      <div className="h-48 sm:h-72">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{ top: 0, right: 0, bottom: 0, left: 4 }}
-          >
-            <YAxis
-              orientation="right"
-              width={32}
-              domain={domain}
-              allowDecimals={false}
-              tick={{ fontSize: 12, fill: "var(--foreground2)" }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <CartesianGrid vertical={false} stroke="var(--border)" />
-            <Tooltip
-              animationDuration={200}
-              animationEasing="ease-out"
-              cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
-              content={<ChartTooltip onActiveChange={setActive} fallback={fallback} />}
-            />
-            <Line
-              type="monotone"
-              dataKey="drawCRS"
-              stroke="var(--primary)"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 5, strokeWidth: 2, fill: "var(--primary)" }}
-              animationDuration={400}
-              animationEasing="ease-out"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+      <ResponsiveContainer width="100%" aspect={1.84}>
+        <LineChart
+          data={data}
+          margin={{ top: 0, right: 0, bottom: 0, left: 4 }}
+        >
+          <YAxis
+            orientation="right"
+            width={32}
+            domain={domain}
+            allowDecimals={false}
+            tick={{ fontSize: 12, fill: "var(--foreground2)" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <Tooltip
+            animationDuration={200}
+            animationEasing="ease-out"
+            cursor={{ stroke: "var(--border2)", strokeDasharray: "1 2" }}
+            content={<ChartTooltip onActiveChange={setActive} fallback={fallback} />}
+          />
+          <Line
+            type="monotone"
+            dataKey="drawCRS"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 2, fill: "var(--primary)" }}
+            animationDuration={400}
+            animationEasing="ease-out"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div >
   );
 }

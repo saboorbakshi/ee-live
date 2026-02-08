@@ -4,6 +4,7 @@ import rawData from "../data.json";
 import { useState, useMemo } from "react";
 import Select from "./components/Select";
 import CRSChart from "./components/CRSChart";
+import InvitationChart from "./components/InvitationChart";
 
 interface Round {
   drawDate: string;
@@ -102,7 +103,8 @@ for (const category of categories) {
   }));
 }
 
-const timeOptions = ["1Y", "All", "2026", "2025", "2024", "2023", "2022", "2021", "2020"];
+const timeOptions = ["1Y", "2Y", "All", "2026", "2025", "2024", "2023", "2022", "2021", "2020"];
+const yearOptions = ["2026", "2025", "2024", "2023", "2022", "2021", "2020"];
 
 function filterByTime(
   data: typeof chartDataByCategory[string],
@@ -111,9 +113,10 @@ function filterByTime(
   let filtered;
   if (period === "All") {
     filtered = data;
-  } else if (period === "1Y") {
+  } else if (period === "1Y" || period === "2Y") {
     const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    const years = period === "1Y" ? 1 : 2;
+    cutoff.setFullYear(cutoff.getFullYear() - years);
     const cutoffStr = cutoff.toISOString().slice(0, 10);
     filtered = data.filter((d) => d.drawDate >= cutoffStr);
   } else {
@@ -125,28 +128,43 @@ function filterByTime(
 export default function Home() {
   const [category, setCategory] = useState("Canadian Experience Class");
   const [timePeriod, setTimePeriod] = useState("1Y");
-  const data = useMemo(
+  const [invitationYear, setInvitationYear] = useState("2026");
+  const filteredScores = useMemo(
     () => filterByTime(chartDataByCategory[category] ?? [], timePeriod),
     [category, timePeriod],
   );
 
   return (
     <div className="flex min-h-screen items-center justify-center font-sans">
-      <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5">
-        <div className="mb-6 flex gap-2">
-          <Select
-            value={category}
-            onValueChange={setCategory}
-            options={categories}
-          />
-          <Select
-            value={timePeriod}
-            onValueChange={setTimePeriod}
-            options={timeOptions}
-          />
+      <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5 gap-16">
+        <div>
+          <div className="mb-6 flex gap-2">
+            <Select
+              value={category}
+              onValueChange={setCategory}
+              options={categories}
+            />
+            <Select
+              value={timePeriod}
+              onValueChange={setTimePeriod}
+              options={timeOptions}
+            />
+          </div>
+          <CRSChart data={filteredScores} />
         </div>
-        <CRSChart data={data} />
+
+        <div>
+          <div className="mb-6 flex gap-2">
+            <Select
+              value={invitationYear}
+              onValueChange={setInvitationYear}
+              options={yearOptions}
+            />
+          </div>
+          <InvitationChart data={rounds} year={invitationYear} />
+        </div>
       </main>
     </div>
   );
 }
+
