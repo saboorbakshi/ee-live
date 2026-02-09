@@ -1,3 +1,5 @@
+"use client"
+
 import {
   BarChart,
   Bar,
@@ -6,47 +8,43 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import { SHORT_MONTHS, FULL_MONTHS, CHART_ASPECT_RATIO } from "../constants"
-import { InvitationDataPoint } from "../types"
+import { PoolDataPoint } from "../types"
 import ChartHeader from "./ChartHeader"
 import ChartTooltipComponent from "./ChartTooltip"
+import { CHART_ASPECT_RATIO } from "../constants"
 
-interface InvitationChartProps {
-  data: InvitationDataPoint[]
+interface PoolChartProps {
+  data: PoolDataPoint[]
   total: number
-  year: number
 }
 
 function ChartTooltip({
   active,
   payload,
-  year,
 }: {
   active?: boolean
-  payload?: { payload: InvitationDataPoint }[]
-  year: number
+  payload?: { payload: PoolDataPoint }[]
 }) {
   if (!active || !payload?.[0]) return null
   const point = payload[0].payload
-  const fullMonth = FULL_MONTHS[point.month]
 
   return (
     <ChartTooltipComponent
       content={
         <div className="flex flex-col text-foreground2">
-          <span><span className="text-foreground">{point.invitations.toLocaleString()}</span> invitations</span>
-          <span>{fullMonth} {year}</span>
+          <span><span className="text-foreground">{point.count.toLocaleString()}</span> candidates</span>
+          <span><span className="text-foreground">{point.range}</span> CRS score</span>
         </div>
       }
     />
   )
 }
 
-export default function InvitationChart({ data, total, year }: InvitationChartProps) {
+export default function PoolChart({ data, total }: PoolChartProps) {
   return (
     <div>
       <ChartHeader
-        title="Total Invitations"
+        title="Candidate Distribution"
         value={total}
       />
 
@@ -57,12 +55,10 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
           margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
         >
           <XAxis
-            dataKey="month"
-            interval={2}
+            dataKey="range"
             tick={{ fontSize: 12, fill: "var(--foreground2)" }}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(val) => SHORT_MONTHS[val]}
           />
           <YAxis
             orientation="right"
@@ -76,11 +72,11 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
             animationDuration={200}
             animationEasing="ease-out"
             cursor={{ fill: "var(--background2)" }}
-            content={<ChartTooltip year={year} />}
+            content={<ChartTooltip />}
           />
           <Bar
-            maxBarSize={22}
-            dataKey="invitations"
+            maxBarSize={48}
+            dataKey="count"
             fill="var(--primary)"
             radius={[2, 2, 2, 2]}
             animationDuration={400}

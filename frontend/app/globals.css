@@ -6,8 +6,9 @@
   --foreground: #111111;
   --foreground2: #888888;
   --border: #f1f1f1;
-  --border2: #d0d0d0;
+  --border2: #dddddd;
   --primary: #d52b1e;
+  --weight-normal: 360;
 }
 
 @theme inline {
@@ -19,11 +20,27 @@
   --color-border2: var(--border2);  
   --color-primary: var(--primary);
   --font-sans: var(--font-sohne);
+  --font-weight-normal: var(--weight-normal);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sohne), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-weight: var(--weight-normal);
   position: relative;
+}
+
+::-webkit-scrollbar-thumb {
+  width: 0px;
+  background: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+html {
+  scrollbar-width: none;
 }

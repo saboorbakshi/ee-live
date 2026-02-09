@@ -39,17 +39,19 @@ export default function Select({ value, onValueChange, options, className }: Sel
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner className="z-50 outline-none" alignItemWithTrigger={false} side="bottom" sideOffset={4}>
-          <BaseSelect.Popup className="rounded-lg border border-border bg-background py-1 data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 transition-[transform,opacity] duration-150 origin-(--transform-origin)">
-            {options.map((option) => (
-              <BaseSelect.Item
-                key={option}
-                value={option}
-                className="grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-1 px-3 py-1.5 text-sm outline-none data-highlighted:bg-background2"
-              >
-                <BaseSelect.ItemIndicator className="col-start-1">•</BaseSelect.ItemIndicator>
-                <BaseSelect.ItemText className="col-start-2">{option}</BaseSelect.ItemText>
-              </BaseSelect.Item>
-            ))}
+          <BaseSelect.Popup className="overflow-y-auto max-h-62 rounded-lg border border-border bg-background py-1 data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 transition-[transform,opacity] duration-150 origin-(--transform-origin)">
+            <BaseSelect.List>
+              {options.map((option) => (
+                <BaseSelect.Item
+                  key={option}
+                  value={option}
+                  className="grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-1 px-3 py-1.5 text-sm outline-none data-highlighted:bg-background2"
+                >
+                  <BaseSelect.ItemIndicator className="col-start-1">•</BaseSelect.ItemIndicator>
+                  <BaseSelect.ItemText className="col-start-2">{option}</BaseSelect.ItemText>
+                </BaseSelect.Item>
+              ))}
+            </BaseSelect.List>
           </BaseSelect.Popup>
         </BaseSelect.Positioner>
       </BaseSelect.Portal>
