@@ -1,8 +1,12 @@
 import fs from "fs"
 import { z } from "zod"
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const FILE = path.resolve(__dirname, "../frontend/data.json")
 
 const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json"
-const FILE = "frontend/data.json"
 const TIMEOUT_MS = 20000
 
 // Strict integer parser
