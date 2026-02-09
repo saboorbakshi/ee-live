@@ -1,88 +1,142 @@
-import fs from "fs";
-import { z } from "zod";
+import fs from "fs"
+import { z } from "zod"
 
-const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json";
-const FILE = "frontend/data.json";
+const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json"
+const FILE = "frontend/data.json"
+const TIMEOUT_MS = 20000
+
+// Strict integer parser
+const commaInt = z.string()
+  .regex(/^[\d,]+$/, "Must contain only digits and commas") 
+  .transform((val, ctx) => {
+    const cleaned = val.replace(/,/g, "")
+    const parsed = Number(cleaned)
+
+    if (!Number.isSafeInteger(parsed)) {
+      ctx.addIssue({
+        code: "custom",
+        message: `"${val}" is not a safe integer`,
+      })
+      return z.NEVER
+    }
+    return parsed
+  })
+
+// Strict date parser
+const strictISODate = z.iso.date().transform((val) => {
+  return new Date(val).toISOString();
+});
 
 // Define expected schema for a round
 const RoundSchema = z.object({
   drawNumber: z.string(),
   drawNumberURL: z.string(),
-  drawDate: z.string(),
+  drawDate: strictISODate,
   drawDateFull: z.string(),
   drawName: z.string(),
-  drawSize: z.string(),
-  drawCRS: z.string(),
+  drawSize: commaInt,
+  drawCRS: commaInt,
   mitext: z.string(),
   DrawText1: z.string(),
   drawText2: z.string(),
   drawDateTime: z.string(),
   drawCutOff: z.string(),
   drawDistributionAsOn: z.string(),
-  dd1: z.string(),
-  dd2: z.string(),
-  dd3: z.string(),
-  dd4: z.string(),
-  dd5: z.string(),
-  dd6: z.string(),
-  dd7: z.string(),
-  dd8: z.string(),
-  dd9: z.string(),
-  dd10: z.string(),
-  dd11: z.string(),
-  dd12: z.string(),
-  dd13: z.string(),
-  dd14: z.string(),
-  dd15: z.string(),
-  dd16: z.string(),
-  dd17: z.string(),
-  dd18: z.string(),
-});
+  dd1: commaInt,
+  dd2: commaInt,
+  dd3: commaInt,
+  dd4: commaInt,
+  dd5: commaInt,
+  dd6: commaInt,
+  dd7: commaInt,
+  dd8: commaInt,
+  dd9: commaInt,
+  dd10: commaInt,
+  dd11: commaInt,
+  dd12: commaInt,
+  dd13: commaInt,
+  dd14: commaInt,
+  dd15: commaInt,
+  dd16: commaInt,
+  dd17: commaInt,
+  dd18: commaInt,
+})
 
 const ApiResponseSchema = z.object({
   classes: z.string(),
-  rounds: z.array(RoundSchema),
-});
+  rounds: z.array(RoundSchema).min(1, "API must contain at least one round"),
+})
 
-// 1. Fetch data from API
-console.log("Fetching data from API...");
-const response = await fetch(API_URL);
-if (!response.ok) {
-  console.error(`Failed to fetch API: ${response.status} ${response.statusText}`);
-  process.exit(1);
+async function main() {
+  try {
+    console.log("Fetching data from API...")
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
+    
+    let response
+    try {
+      response = await fetch(API_URL, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0 Win64 x64) AppleWebKit/537.36',
+        }
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
+    
+    if (!response.ok) {
+      throw new Error(`API fetch failed: ${response.status} ${response.statusText}`)
+    }
+    
+    const newData = await response.json()
+
+    // 2. Validate and transform schema (strict - no fallbacks)
+    console.log("Validating and transforming data...")
+    const parseResult = ApiResponseSchema.safeParse(newData)
+
+    if (!parseResult.success) {
+      console.error("Schema validation/transformation failed:")
+      console.error(JSON.stringify(z.treeifyError(parseResult.error), null, 2))
+      
+      parseResult.error.issues.forEach((issue) => {
+        console.error(`  - Path: ${issue.path.join(".")} | ${issue.message}`)
+      })
+      
+      throw new Error("Schema validation failed")
+    }
+    
+    console.log("Schema validation and transformation passed.")
+
+    // 3. Read existing data
+    const oldData = JSON.parse(fs.readFileSync(FILE, "utf8"))
+    const oldDrawNumber = oldData.payload.rounds[0].drawNumber
+    const newDrawNumber = parseResult.data.rounds[0].drawNumber
+
+    console.log(`Current draw number: ${oldDrawNumber}`)
+    console.log(`API draw number: ${newDrawNumber}`)
+
+    // 4. Update if new draw exists
+    if (newDrawNumber > oldDrawNumber) {
+      const updatedData = {
+        updatedAt: new Date().toISOString(),
+        payload: parseResult.data,
+      }
+
+      fs.writeFileSync(FILE, JSON.stringify(updatedData, null, 2))
+      console.log(`New draw detected: ${newDrawNumber}. Data updated.`)
+    } else {
+      console.log("No new draw. Skipping update.")
+    }
+    
+    process.exit(0)
+    
+  } catch (error) {
+    console.error("Error occurred:")
+    console.error(error.message || error)
+    process.exit(1)
+  }
 }
-const newData = await response.json();
 
-// 2. Validate schema
-console.log("Validating schema...");
-const parseResult = ApiResponseSchema.safeParse(newData);
-
-if (!parseResult.success) {
-  console.error("Schema validation failed:");
-  console.error(parseResult.error.format());
-  process.exit(1);
-}
-console.log("Schema validation passed.");
-
-// 3. Read existing data
-const oldData = JSON.parse(fs.readFileSync(FILE, "utf8"));
-const oldDrawNumber = parseInt(oldData.payload.rounds[0].drawNumber, 10);
-const newDrawNumber = parseInt(newData.rounds[0].drawNumber, 10);
-
-console.log(`Current draw number: ${oldDrawNumber}`);
-console.log(`API draw number: ${newDrawNumber}`);
-
-// 4. Check if new draw exists
-if (newDrawNumber > oldDrawNumber) {
-  fs.writeFileSync(
-    FILE,
-    JSON.stringify(
-      { updatedAt: new Date().toISOString(), payload: newData },
-      null,
-      2
-    )
-  );
-  console.log(`New draw detected: ${newDrawNumber}. Data updated.`);
-} else {
-  console.log("No new draw. Skipping update.");
-}
+main()
