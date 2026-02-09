@@ -4,11 +4,11 @@
   --background: #ffffff;
   --background2: #f7f7f7;
   --foreground: #111111;
-  --foreground2: #888888;
+  --foreground2: #787878;
   --border: #f1f1f1;
   --border2: #dddddd;
   --primary: #d52b1e;
-  --weight-normal: 350;
+  --weight-normal: 340;
 }
 
 @theme inline {
