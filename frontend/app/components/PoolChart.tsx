@@ -11,7 +11,7 @@ import {
 import { PoolDataPoint } from "../types"
 import ChartHeader from "./ChartHeader"
 import ChartTooltipComponent from "./ChartTooltip"
-import { CHART_ASPECT_RATIO } from "../constants"
+import { CHART_ASPECT_RATIO, POOL_VIEWS } from "../constants"
 
 interface PoolChartProps {
   data: PoolDataPoint[]
@@ -41,6 +41,7 @@ function ChartTooltip({
 }
 
 export default function PoolChart({ data, total }: PoolChartProps) {
+  const isDetailed = data.length > POOL_VIEWS.Compact.length
   return (
     <div>
       <ChartHeader
@@ -50,11 +51,12 @@ export default function PoolChart({ data, total }: PoolChartProps) {
 
       <ResponsiveContainer width="100%" aspect={CHART_ASPECT_RATIO}>
         <BarChart
-          barCategoryGap={5}
+          barCategoryGap="16%"
           data={data}
           margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
         >
           <XAxis
+            interval={isDetailed ? 2 : 0}
             dataKey="range"
             tick={{ fontSize: 12, fill: "var(--foreground2)" }}
             tickLine={false}
@@ -75,7 +77,7 @@ export default function PoolChart({ data, total }: PoolChartProps) {
             content={<ChartTooltip />}
           />
           <Bar
-            maxBarSize={48}
+            maxBarSize={isDetailed ? 20 : 48}
             dataKey="count"
             fill="var(--primary)"
             radius={[2, 2, 2, 2]}

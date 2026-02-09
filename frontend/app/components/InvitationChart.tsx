@@ -52,7 +52,7 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
 
       <ResponsiveContainer width="100%" aspect={CHART_ASPECT_RATIO}>
         <BarChart
-          barCategoryGap={5}
+          barCategoryGap="16%"
           data={data}
           margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
         >
@@ -79,7 +79,7 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
             content={<ChartTooltip year={year} />}
           />
           <Bar
-            maxBarSize={22}
+            maxBarSize={24}
             dataKey="invitations"
             fill="var(--primary)"
             radius={[2, 2, 2, 2]}

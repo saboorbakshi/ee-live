@@ -13,7 +13,12 @@ import { PERIODS, POOL_VIEWS } from "./constants"
 const data = ApiResponseSchema.parse(rawData)
 const rounds = extractRounds(data)
 const years = [...new Set(rounds.map(round => round.drawDate.getFullYear()))].sort((a, b) => b - a)
-const TIME_OPTIONS = [...PERIODS, ...years.map(String)]
+
+const TIME_OPTIONS = [
+  { label: "Periods", options: PERIODS },
+  { label: "Years", options: years.map(String) },
+]
+
 const latestRound = rounds[0]
 const drawData = formatDrawData(rounds)
 const invitationData = formatInvitationData(rounds, years)
@@ -22,7 +27,7 @@ export default function Home() {
   // drawChart
   const categories = Object.keys(drawData)
   const [category, setCategory] = useState(categories[1] || categories[0])
-  const [timeOption, setTimeOption] = useState(TIME_OPTIONS[2])
+  const [timeOption, setTimeOption] = useState(PERIODS[PERIODS.length - 1])
 
   const filteredDrawData = useMemo(() => {
     return filterByTime(drawData[category], timeOption)
