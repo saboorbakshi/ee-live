@@ -58,7 +58,7 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
         >
           <XAxis
             dataKey="month"
-            interval={2}
+            interval={1}
             tick={{ fontSize: 12, fill: "var(--foreground2)" }}
             tickLine={false}
             axisLine={false}
