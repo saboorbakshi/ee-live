@@ -57,9 +57,33 @@ export default function Home() {
     <div className="flex min-h-screen items-center justify-center font-sans">
       <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-16 px-5 gap-12 sm:gap-16">
         <div className="-mb-2">
-          <p className="text-4xl sm:text-5xl font-medium mb-4">Canada Express Entry Statistics</p>
-          <p>Bio, why i built and who is it for? Me lol, so yeah, all data from 2020, etc...</p>
+          <p className="text-4xl sm:text-5xl font-medium mb-6">Canada Express Entry Statistics</p>
+          <p className="mb-4">
+            All Express Entry draws since 2020 are documented here to help you better understand
+            your position based on your CRS score. The charts below break this data into three views:
+          </p>
+
+          <ol className="list-decimal ml-6 space-y-1 mb-4">
+            <li>
+              The lowest CRS score for each draw, shown chronologically to highlight score trends over time.
+            </li>
+            <li>
+              The number of invitations issued per month, grouped by year.
+            </li>
+            <li>
+              The current distribution of candidates in the Express Entry pool as of {latestRound.drawDateFull}.
+            </li>
+          </ol>
+          <a
+            href="https://saboorbakshi.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-forweground2 hover:text-foreground/70 underline"
+          >
+            by Saboor Bakshi
+          </a>
         </div>
+
 
         <section>
           <div className="mb-4 flex gap-2">
