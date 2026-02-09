@@ -8,6 +8,8 @@ const FILE = path.resolve(__dirname, "../frontend/data.json")
 
 const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json"
 const TIMEOUT_MS = 20000
+const RETRY_DELAY_MS = 2000
+const MAX_RETRIES = 3
 
 // Strict integer parser
 const commaInt = z.string()
@@ -71,28 +73,48 @@ const ApiResponseSchema = z.object({
   rounds: z.array(RoundSchema).min(1, "API must contain at least one round"),
 })
 
-async function main() {
-  try {
-    console.log("Fetching data from API...")
-    
+async function fetchWithRetry(url, options, retries = MAX_RETRIES) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
     
-    let response
     try {
-      response = await fetch(API_URL, {
+      console.log(`Attempt ${attempt}/${retries}: Fetching data from API...`)
+      
+      const response = await fetch(url, {
+        ...options,
         signal: controller.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0 Win64 x64) AppleWebKit/537.36',
-        }
       })
-    } finally {
+      
       clearTimeout(timeoutId)
+      
+      if (!response.ok) {
+        throw new Error(`API fetch failed: ${response.status} ${response.statusText}`)
+      }
+      
+      return response
+      
+    } catch (error) {
+      clearTimeout(timeoutId)
+      
+      if (attempt === retries) {
+        throw error
+      }
+      
+      console.warn(`Attempt ${attempt} failed: ${error.message}`)
+      console.log(`Retrying in ${RETRY_DELAY_MS}ms...`)
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * attempt))
     }
-    
-    if (!response.ok) {
-      throw new Error(`API fetch failed: ${response.status} ${response.statusText}`)
-    }
+  }
+}
+
+async function main() {
+  try {
+    const response = await fetchWithRetry(API_URL, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      }
+    })
     
     const newData = await response.json()
 
