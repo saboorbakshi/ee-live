@@ -6,6 +6,7 @@ import DrawChart from "./components/DrawChart"
 import InvitationChart from "./components/InvitationChart"
 import PoolChart from "./components/PoolChart"
 import Select from "./components/Select"
+import ExternalLink from "./components/ExternalLink"
 import { extractRounds, formatDrawData, formatInvitationData, getPoolDistribution, filterByTime } from "./utils"
 import { ApiResponseSchema } from "./types"
 import { PERIODS, POOL_VIEWS } from "./constants"
@@ -59,8 +60,8 @@ export default function Home() {
         <div className="-mb-2">
           <p className="text-4xl sm:text-5xl font-medium mb-6">Canada Express Entry Statistics</p>
           <p className="mb-4">
-            All Express Entry draws since 2020 are documented here to help you better understand
-            your position based on your CRS score. The charts below break this data into three views:
+            All Express Entry draws since 2020 are tracked and automatically updated here to help you better understand
+            your position based on your <ExternalLink href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score.html">CRS</ExternalLink> score. The charts below break this data into three views:
           </p>
 
           <ol className="list-decimal ml-6 space-y-1 mb-4">
@@ -74,14 +75,9 @@ export default function Home() {
               The current distribution of candidates in the Express Entry pool as of {latestRound.drawDateFull}.
             </li>
           </ol>
-          <a
-            href="https://saboorbakshi.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-forweground2 hover:text-foreground/70 underline"
-          >
+          <ExternalLink href="https://saboorbakshi.com/">
             by Saboor Bakshi
-          </a>
+          </ExternalLink>
         </div>
 
 

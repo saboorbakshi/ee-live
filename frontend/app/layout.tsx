@@ -9,9 +9,9 @@ const sohne = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Express Entry Tracker",
-  description: "Track the latest Express Entry invitations, CRS scores, and pool sizes.",
-};
+  title: "Canada Express Entry Statistics",
+  description: "Track CRS cutoff scores, invitations, and candidate pool data for Express Entry draws."
+}
 
 export default function RootLayout({
   children,
