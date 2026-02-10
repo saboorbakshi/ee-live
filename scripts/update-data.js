@@ -4,36 +4,30 @@ import path from "path"
 import { fileURLToPath } from "url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const FILE = path.resolve(__dirname, "../frontend/data.json")
+const FRONTEND_DATA_FILE = path.resolve(__dirname, "../frontend/data.json")
 
-const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json"
-const TIMEOUT_MS = 30000
-const RETRY_DELAY_MS = 3000
-const MAX_RETRIES = 3
+const RAW_DATA_INPUT = process.argv[2]
 
-// Strict integer parser
+if (!RAW_DATA_INPUT) {
+  console.error("Error: No input file provided.")
+  console.error("Usage: node update-data.js <path-to-raw-json>")
+  process.exit(1)
+}
+
 const commaInt = z.string()
   .regex(/^[\d,]+$/, "Must contain only digits and commas") 
   .transform((val, ctx) => {
     const cleaned = val.replace(/,/g, "")
     const parsed = Number(cleaned)
-
     if (!Number.isSafeInteger(parsed)) {
-      ctx.addIssue({
-        code: "custom",
-        message: `"${val}" is not a safe integer`,
-      })
+      ctx.addIssue({ code: "custom", message: `"${val}" is not a safe integer` })
       return z.NEVER
     }
     return parsed
   })
 
-// Strict date parser
-const strictISODate = z.iso.date().transform((val) => {
-  return new Date(val).toISOString();
-});
+const strictISODate = z.string().transform((val) => new Date(val).toISOString())
 
-// Define expected schema for a round
 const RoundSchema = z.object({
   drawNumber: z.string(),
   drawNumberURL: z.string(),
@@ -73,108 +67,51 @@ const ApiResponseSchema = z.object({
   rounds: z.array(RoundSchema).min(1, "API must contain at least one round"),
 })
 
-async function fetchWithRetry(url, options, retries = MAX_RETRIES) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS)
-    
-    try {
-      console.log(`Attempt ${attempt}/${retries}: Fetching data from API...`)
-      
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      })
-      
-      clearTimeout(timeoutId)
-      
-      if (!response.ok) {
-        throw new Error(`API fetch failed: ${response.status} ${response.statusText}`)
-      }
-      
-      return response
-      
-    } catch (error) {
-      clearTimeout(timeoutId)
-      
-      if (attempt === retries) {
-        throw error
-      }
-      
-      console.warn(`Attempt ${attempt} failed: ${error.message}`)
-      console.log(`Retrying in ${RETRY_DELAY_MS}ms...`)
-      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * attempt))
-    }
-  }
-}
-
 async function main() {
   try {
-    const response = await fetchWithRetry(API_URL, {
-      headers: {
-        // 1. Standard User Agent (keep this)
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        
-        // 2. Accept Headers - Vital for looking like a browser
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        
-        // 3. Sec-Fetch Headers - Modern browsers send these, scripts usually don't
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-        'Connection': 'keep-alive'
-      }
-    })
+    const absolutePath = path.resolve(process.cwd(), RAW_DATA_INPUT)
     
-    const newData = await response.json()
+    if (!fs.existsSync(absolutePath)) {
+      throw new Error(`Input file not found: ${absolutePath}`)
+    }
 
-    // 2. Validate and transform schema (strict - no fallbacks)
-    console.log("Validating and transforming data...")
-    const parseResult = ApiResponseSchema.safeParse(newData)
+    console.log(`Reading: ${absolutePath}`)
+    const fileContent = fs.readFileSync(absolutePath, "utf8")
+    const apiJson = JSON.parse(fileContent)
+
+    console.log("Validating data structure...")
+    const parseResult = ApiResponseSchema.safeParse(apiJson)
 
     if (!parseResult.success) {
-      console.error("Schema validation/transformation failed:")
-      console.error(JSON.stringify(z.treeifyError(parseResult.error), null, 2))
-      
       parseResult.error.issues.forEach((issue) => {
-        console.error(`  - Path: ${issue.path.join(".")} | ${issue.message}`)
+        console.error(`Validation Issue - Path: ${issue.path.join(".")} | ${issue.message}`)
       })
-      
       throw new Error("Schema validation failed")
     }
-    
-    console.log("Schema validation and transformation passed.")
 
-    // 3. Read existing data
-    const oldData = JSON.parse(fs.readFileSync(FILE, "utf8"))
+    // Path is guaranteed to exist
+    const oldData = JSON.parse(fs.readFileSync(FRONTEND_DATA_FILE, "utf8"))
     const oldDrawNumber = oldData.payload.rounds[0].drawNumber
     const newDrawNumber = parseResult.data.rounds[0].drawNumber
 
-    console.log(`Current draw number: ${oldDrawNumber}`)
-    console.log(`API draw number: ${newDrawNumber}`)
+    console.log(`Current draw: ${oldDrawNumber}`)
+    console.log(`API draw:     ${newDrawNumber}`)
 
-    // 4. Update if new draw exists
     if (newDrawNumber > oldDrawNumber) {
       const updatedData = {
         updatedAt: new Date().toISOString(),
         payload: parseResult.data,
       }
 
-      fs.writeFileSync(FILE, JSON.stringify(updatedData, null, 2))
-      console.log(`New draw detected: ${newDrawNumber}. Data updated.`)
+      fs.writeFileSync(FRONTEND_DATA_FILE, JSON.stringify(updatedData, null, 2))
+      console.log(`Success: Updated ${FRONTEND_DATA_FILE}`)
     } else {
-      console.log("No new draw. Skipping update.")
+      console.log("No new draw detected. Skipping update.")
     }
     
-    process.exit(0)
-    
   } catch (error) {
-    console.error("Error occurred:")
-    console.error(error.message || error)
+    console.error("Fatal Error:")
+    console.error(error.message)
     process.exit(1)
   }
 }
