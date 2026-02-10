@@ -1,10 +1,10 @@
 {
   "name": "ee-live-scripts",
   "type": "module",
-  "dependencies": {
-    "zod": "^4.0.0"
-  },
   "scripts": {
     "update": "curl -L \"https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json\" -o raw_data.json && node update-data.js raw_data.json && rm raw_data.json"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
   }
 }
