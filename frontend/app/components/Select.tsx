@@ -37,7 +37,7 @@ function SelectItem({ value }: { value: string }) {
   return (
     <BaseSelect.Item
       value={value}
-      className="grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-1 px-3 py-1.5 text-sm outline-none data-highlighted:bg-background2"
+      className="grid cursor-default select-none grid-cols-[0.75rem_1fr] items-center gap-1 px-3 py-1.5 text-sm outline-none data-highlighted:bg-background2 rounded-sm"
     >
       <BaseSelect.ItemIndicator className="col-start-1">•</BaseSelect.ItemIndicator>
       <BaseSelect.ItemText className="col-start-2">{value}</BaseSelect.ItemText>
@@ -58,8 +58,8 @@ export default function Select({ value, onValueChange, options, className }: Sel
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner className="z-50 outline-none" alignItemWithTrigger={false} side="bottom" sideOffset={4}>
-          <BaseSelect.Popup className="overflow-y-auto max-h-62 rounded-lg border border-border bg-background py-1 data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 transition-[transform,opacity] duration-150 origin-(--transform-origin)">
-            <BaseSelect.List>
+          <BaseSelect.Popup className="overflow-y-auto max-h-62 rounded-lg border border-border bg-background data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 transition-[transform,opacity] duration-150 origin-(--transform-origin)">
+            <BaseSelect.List className={"p-1"}>
               {options.map((option) => {
                 if (typeof option === "string") {
                   return <SelectItem key={option} value={option} />;
