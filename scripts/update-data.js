@@ -7,8 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FILE = path.resolve(__dirname, "../frontend/data.json")
 
 const API_URL = "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json"
-const TIMEOUT_MS = 20000
-const RETRY_DELAY_MS = 2000
+const TIMEOUT_MS = 30000
+const RETRY_DELAY_MS = 3000
 const MAX_RETRIES = 3
 
 // Strict integer parser
@@ -112,7 +112,21 @@ async function main() {
   try {
     const response = await fetchWithRetry(API_URL, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        // 1. Standard User Agent (keep this)
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        
+        // 2. Accept Headers - Vital for looking like a browser
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        
+        // 3. Sec-Fetch Headers - Modern browsers send these, scripts usually don't
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive'
       }
     })
     
