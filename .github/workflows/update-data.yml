@@ -23,14 +23,10 @@ jobs:
         run: npm install
         working-directory: scripts
 
-      - name: Download raw data
+      - name: Download and process data
+        working-directory: scripts
         run: |
-          curl -v -L "https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json" \
-          -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-          -o raw_data.json
-
-      - name: Process and update
-        run: node scripts/update-data.js raw_data.json
+          npm run update
 
       - name: Commit & push if updated
         run: |
