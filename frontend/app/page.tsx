@@ -75,7 +75,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center font-sans">
-      <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-14 px-5 gap-12 sm:gap-16">
+      <main className="flex min-h-screen w-full max-w-xl flex-col py-8 sm:py-14 px-5 gap-14 sm:gap-16">
         <div>
           <p className="text-4xl sm:text-5xl font-medium mb-8">Canada Express Entry Statistics</p>
           <p className="mb-6">
