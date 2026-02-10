@@ -28,7 +28,7 @@ const TIME_OPTIONS = [
 const ChartPlaceholder = () => (
   <div
     style={{ aspectRatio: CHART_ASPECT_RATIO }}
-    className="w-full flex items-center justify-center text-foreground2 text-base border border-border rounded-md"
+    className="w-full flex items-center justify-center text-foreground2 text-sm sm:text-base border border-border rounded-md"
   >
     <p>No draws available for the selected filters.</p>
   </div>
