@@ -1,3 +1,5 @@
+"use client"
+
 import {
   BarChart,
   Bar,
@@ -5,15 +7,14 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts"
 import { SHORT_MONTHS, FULL_MONTHS, CHART_ASPECT_RATIO } from "../constants"
 import { InvitationDataPoint } from "../types"
-import ChartHeader from "./ChartHeader"
 import ChartTooltipComponent from "./ChartTooltip"
 
 interface InvitationChartProps {
   data: InvitationDataPoint[]
-  total: number
   year: number
 }
 
@@ -42,14 +43,9 @@ function ChartTooltip({
   )
 }
 
-export default function InvitationChart({ data, total, year }: InvitationChartProps) {
+export default function InvitationChart({ data, year }: InvitationChartProps) {
   return (
     <div>
-      <ChartHeader
-        title="Total Invitations"
-        value={total}
-      />
-
       <ResponsiveContainer width="100%" aspect={CHART_ASPECT_RATIO}>
         <BarChart
           barCategoryGap="16%"
@@ -72,9 +68,9 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
             axisLine={false}
             tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)}
           />
+          <CartesianGrid vertical={false} stroke="var(--border2)" strokeDasharray="1 2" />
           <Tooltip
-            animationDuration={200}
-            animationEasing="ease-out"
+            isAnimationActive={false}
             cursor={{ fill: "var(--background2)" }}
             content={<ChartTooltip year={year} />}
           />
@@ -83,7 +79,7 @@ export default function InvitationChart({ data, total, year }: InvitationChartPr
             dataKey="invitations"
             fill="var(--primary)"
             radius={[2, 2, 2, 2]}
-            animationDuration={400}
+            animationDuration={200}
             animationEasing="ease-out"
           />
         </BarChart>

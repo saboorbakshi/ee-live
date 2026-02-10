@@ -7,15 +7,14 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts"
 import { PoolDataPoint } from "../types"
-import ChartHeader from "./ChartHeader"
 import ChartTooltipComponent from "./ChartTooltip"
 import { CHART_ASPECT_RATIO, POOL_VIEWS } from "../constants"
 
 interface PoolChartProps {
   data: PoolDataPoint[]
-  total: number
 }
 
 function ChartTooltip({
@@ -40,15 +39,10 @@ function ChartTooltip({
   )
 }
 
-export default function PoolChart({ data, total }: PoolChartProps) {
+export default function PoolChart({ data }: PoolChartProps) {
   const isDetailed = data.length > POOL_VIEWS.Compact.length
   return (
     <div>
-      <ChartHeader
-        title="Candidate Distribution"
-        value={total}
-      />
-
       <ResponsiveContainer width="100%" aspect={CHART_ASPECT_RATIO}>
         <BarChart
           barCategoryGap="16%"
@@ -70,9 +64,9 @@ export default function PoolChart({ data, total }: PoolChartProps) {
             axisLine={false}
             tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)}
           />
+          <CartesianGrid vertical={false} stroke="var(--border2)" strokeDasharray="1 2" />
           <Tooltip
-            animationDuration={200}
-            animationEasing="ease-out"
+            isAnimationActive={false}
             cursor={{ fill: "var(--background2)" }}
             content={<ChartTooltip />}
           />
@@ -81,7 +75,7 @@ export default function PoolChart({ data, total }: PoolChartProps) {
             dataKey="count"
             fill="var(--primary)"
             radius={[2, 2, 2, 2]}
-            animationDuration={400}
+            animationDuration={200}
             animationEasing="ease-out"
           />
         </BarChart>
