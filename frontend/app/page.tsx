@@ -126,7 +126,7 @@ export default function Home() {
 
         <section>
           <ChartHeader
-            title="Candidate Distribution"
+            title="Total Invitations"
             value={totalInvitations}
           />
           <div className="flex gap-2 mb-6">
@@ -136,11 +136,13 @@ export default function Home() {
         </section>
 
         <section>
-          <ChartHeader
-            title="Candidate Distribution"
-            value={latestRound.totalCandidates}
-            subtitle={latestRound.drawDateFull}
-          />
+          <div className="flex justify-between">
+            <ChartHeader
+              title="Candidate Distribution"
+              value={latestRound.totalCandidates}
+              subtitle={latestRound.drawDateFull}
+            />
+          </div>
           <div className="flex gap-2 mb-6">
             <Select value={poolView} onValueChange={(v) => setPoolView(v as keyof typeof POOL_VIEWS)} options={poolViewOptions} />
           </div>
